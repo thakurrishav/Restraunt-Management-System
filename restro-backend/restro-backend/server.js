@@ -36,3 +36,10 @@ app.listen(PORT, () => {
 const paymentRoutes = require("./routes/paymentRoutes");
 
 app.use("/api/payments", paymentRoutes);
+
+const recommendationRoutes =
+    require("./routes/recommendationRoutes");
+app.use(
+    "/api/recommendations",
+    recommendationRoutes
+);

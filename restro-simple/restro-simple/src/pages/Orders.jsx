@@ -1,4 +1,5 @@
-import { useState } from "react";
+
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";import {
   initialOrders,
   menuItems,
@@ -18,6 +19,49 @@ export default function Orders() {
     paymentMethod: "Cash",
   });
   const [cart, setCart] = useState([]);
+  const [aiRecommendations, setAiRecommendations] = useState([]);
+
+  useEffect(() => {
+
+    const fetchRecommendations = async () => {
+
+      if (cart.length === 0) {
+        setAiRecommendations([]);
+        return;
+      }
+
+      try {
+
+        const response = await fetch(
+            "http://localhost:5000/api/recommendations",
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                cartItems: cart.map(item =>item.name),
+              }),
+            }
+        );
+
+        const data = await response.json();
+
+        if (data.success) {
+          setAiRecommendations(
+              data.aiRecommendations || []
+          );
+        }
+
+      } catch (error) {
+        console.error(error);
+      }
+    };
+
+    fetchRecommendations();
+
+  }, [cart]);
+
   const recommendedItems = [
     ...new Set(
         cart.flatMap(
@@ -25,17 +69,23 @@ export default function Orders() {
         )
     ),
   ];
+
   const addToCart = (item) => {
     const existing = cart.find((c) => c.id === item.id);
 
     if (existing) {
       setCart(
           cart.map((c) =>
-              c.id === item.id ? { ...c, qty: c.qty + 1 } : c
+              c.id === item.id
+                  ? { ...c, qty: c.qty + 1 }
+                  : c
           )
       );
     } else {
-      setCart([...cart, { ...item, qty: 1 }]);
+      setCart([
+        ...cart,
+        { ...item, qty: 1 }
+      ]);
     }
   };
 
@@ -376,6 +426,18 @@ export default function Orders() {
                             </button>
                           </div>
                       ))}
+                      {aiRecommendations.length > 0 && (
+                          <div style={{ marginTop: "15px" }}>
+                            <h4>✨ AI Recommendations</h4>
+
+                            {aiRecommendations.map((item, index) => (
+                                <div key={index}>
+                                  <strong>{item.item}</strong>
+                                  <div>{item.reason}</div>
+                                </div>
+                            ))}
+                          </div>
+                      )}
 
                       <div style={styles.cartTotals}>
                         <p style={styles.cartLine}>
