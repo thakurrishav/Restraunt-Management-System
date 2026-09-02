@@ -1,0 +1,37 @@
+# Environment variables
+.env
+.env.*
+**/.env
+**/.env.*
+
+# Node.js dependencies
+node_modules/
+**/node_modules/
+
+# Build outputs
+dist/
+build/
+out/
+target/
+
+# Logs
+*.log
+logs/
+
+# JetBrains IDEs (WebStorm, IntelliJ)
+.idea/
+*.iml
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Coverage reports
+coverage/
+
+# Vite
+.vite/
+
+# Temporary files
+.tmp/
+.temp/
