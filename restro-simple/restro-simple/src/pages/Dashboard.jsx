@@ -1,14 +1,59 @@
-import { initialOrders, initialTables } from "../data";
+import { useEffect, useState } from "react";
+import { initialTables } from "../data";
+
 
 export default function Dashboard() {
-  const totalOrders = initialOrders.length;
-  const totalRevenue = initialOrders.reduce((sum, o) => sum + o.total, 0);
+  const [Orders, setOrders] = useState([]);
+  useEffect(() => {
+    const loadOrders = async () => {
+      try {
+        const token = localStorage.getItem("token");
+
+        const response = await fetch(
+            `${import.meta.env.VITE_API_URL}/api/orders`,
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            }
+        );
+
+        const data = await response.json();
+
+        if (response.ok) {
+          const formattedOrders = data.orders.map((order) => ({
+            id: order._id,
+            customer: order.customerName,
+            tableNo: order.tableNo,
+            items: order.items,
+            total: order.total,
+            status: order.status,
+            time: new Date(order.createdAt).toLocaleTimeString("en-IN", {
+              hour: "2-digit",
+              minute: "2-digit",
+            }),
+          }));
+
+          console.log("Dashboard Orders:", formattedOrders);
+          setOrders(formattedOrders);
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    };
+
+    loadOrders();
+  }, []);
+
+
+  const totalOrders = Orders.length;
+  const totalRevenue = Orders.reduce((sum, o) => sum + o.total, 0);
   const bookedTables = initialTables.filter((t) => t.status === "Booked").length;
-  const inProgress = initialOrders.filter((o) => o.status === "In Progress").length;
-  const readyOrders = initialOrders.filter((o) => o.status === "Ready").length;
+  const inProgress = Orders.filter((o) => o.status === "In Progress").length;
+  const readyOrders = Orders.filter((o) => o.status === "Ready").length;
   const avgOrder = totalOrders ? Math.round(totalRevenue / totalOrders) : 0;
   const counts = {};
-  initialOrders.forEach((o) => o.items.forEach((item) => counts[item] = (counts[item] || 0) + 1));
+  Orders.forEach((o) => o.items.forEach((item) => counts[item] = (counts[item] || 0) + 1));
   const popularItem = Object.entries(counts).sort((a, b) => b[1] - a[1])[0];
 
   const metrics = [
@@ -63,7 +108,7 @@ export default function Dashboard() {
               </tr>
               </thead>
               <tbody>
-              {initialOrders.map((order) => (
+              {Orders.map((order) => (
                   <tr key={order.id} style={styles.tr}>
                     <td style={styles.td}><span style={styles.orderId}>#{order.id}</span></td>
                     <td style={styles.td}>{order.customer}</td>

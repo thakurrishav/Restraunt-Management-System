@@ -61,7 +61,49 @@ export default function Orders() {
     fetchRecommendations();
 
   }, [cart]);
+// added code
+  useEffect(() => {
+    const loadOrders = async () => {
+      try {
+        const token = localStorage.getItem("token");
 
+        const response = await fetch(
+            `${import.meta.env.VITE_API_URL}/api/orders`,
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            }
+        );
+
+        const data = await response.json();
+
+        if (response.ok) {
+          const formattedOrders = data.orders.map((order) => ({
+            _id: order._id,
+            id: order._id,
+            customer: order.customerName,
+            tableNo: order.tableNo,
+            items: order.items.map((i) => i.name),
+            total: order.total,
+            status: order.status,
+            paymentMethod: order.paymentMethod,
+            paymentStatus: order.paymentStatus,
+            time: new Date(order.createdAt).toLocaleTimeString("en-IN", {
+              hour: "2-digit",
+              minute: "2-digit",
+            }),
+          }));
+
+          setOrders(formattedOrders);
+        }
+      } catch (err) {
+        console.error("Failed to load orders", err);
+      }
+    };
+
+    loadOrders();
+  }, []);
   const recommendedItems = [
     ...new Set(
         cart.flatMap(
@@ -614,6 +656,7 @@ export default function Orders() {
       </div>
   );
 }
+// added code
 
 const styles = {
   page: { padding: "28px 32px", maxWidth: 1200, margin: "0 auto" },
