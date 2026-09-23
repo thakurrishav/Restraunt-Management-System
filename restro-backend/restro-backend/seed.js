@@ -42,6 +42,7 @@ const seed = async () => {
     {
       customerName: "Rahul Shah",
       tableNo: 2,
+      phone: "9999999999",
       items: [
         { name: "Butter Chicken", price: 400, qty: 1 },
         { name: "Mango Lassi", price: 120, qty: 2 },
@@ -55,6 +56,7 @@ const seed = async () => {
     {
       customerName: "Priya Mehta",
       tableNo: 4,
+      phone: "8888888888",
       items: [
         { name: "Paneer Tikka", price: 250, qty: 1 },
         { name: "Gulab Jamun", price: 100, qty: 2 },
