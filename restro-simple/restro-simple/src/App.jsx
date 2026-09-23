@@ -8,7 +8,7 @@ import Menu from "./pages/Menu";
 import Payment from "./pages/Payment";
 import PaymentSuccess from "./pages/PaymentSuccess";
 import Navbar from "./components/Navbar";
-
+import CustomerHistory from "./pages/CustomerHistory";
 function ProtectedLayout({ user, setUser, children }) {
   if (!user) return <Navigate to="/login" />;
   return (
@@ -25,6 +25,14 @@ export default function App() {
   return (
       <BrowserRouter>
         <Routes>
+          <Route
+              path="/customer-history"
+              element={
+                <ProtectedLayout user={user} setUser={setUser}>
+                  <CustomerHistory />
+                </ProtectedLayout>
+              }
+          />
           <Route path="/login" element={user ? <Navigate to="/dashboard" /> : <Login setUser={setUser} />} />
           <Route path="/" element={<Navigate to={user ? "/dashboard" : "/login"} />} />
 

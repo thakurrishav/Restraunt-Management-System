@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";import {
   initialOrders,
@@ -15,12 +14,13 @@ export default function Orders() {
   const [filter, setFilter] = useState("All");
   const [form, setForm] = useState({
     customer: "",
+    phone: "",
     tableNo: "",
     paymentMethod: "Cash",
   });
   const [cart, setCart] = useState([]);
   const [aiRecommendations, setAiRecommendations] = useState([]);
-
+  const [customerHistory, setCustomerHistory] = useState(null);
   useEffect(() => {
 
     const fetchRecommendations = async () => {
@@ -32,21 +32,25 @@ export default function Orders() {
 
       try {
 
+        const token = localStorage.getItem("token");
+
         const response = await fetch(
-            "http://localhost:5000/api/recommendations",
+            `${import.meta.env.VITE_API_URL}/api/recommendations`,
             {
               method: "POST",
               headers: {
                 "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
               },
               body: JSON.stringify({
-                cartItems: cart.map(item =>item.name),
+                cartItems: cart.map((item) => item.name),
               }),
             }
         );
 
         const data = await response.json();
-
+        // added code
+        console.log("Orders API Response:", data);
         if (data.success) {
           setAiRecommendations(
               data.aiRecommendations || []
@@ -83,6 +87,8 @@ export default function Orders() {
             _id: order._id,
             id: order._id,
             customer: order.customerName,
+            //added code
+            phone:order.phone,
             tableNo: order.tableNo,
             items: order.items.map((i) => i.name),
             total: order.total,
@@ -104,6 +110,27 @@ export default function Orders() {
 
     loadOrders();
   }, []);
+  const fetchCustomerHistory = async (phone) => {
+    try {
+      const token = localStorage.getItem("token");
+
+      const response = await fetch(
+          `${import.meta.env.VITE_API_URL}/api/orders/customer/${phone}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+      );
+
+      const data = await response.json();
+
+      setCustomerHistory(data);
+      console.log("Customer History:", data);
+    } catch (err) {
+      console.error(err);
+    }
+  };
   const recommendedItems = [
     ...new Set(
         cart.flatMap(
@@ -157,6 +184,7 @@ export default function Orders() {
 
       const orderData = {
         customerName: form.customer,
+        phone: form.phone,      // ADD THIS LINE
         tableNo: parseInt(form.tableNo),
         items: cart.map((c) => ({
           name: c.name,
@@ -189,6 +217,7 @@ export default function Orders() {
         _id: data.order._id,
         id: data.order._id,
         customer: data.order.customerName,
+        phone: data.order.phone,
         tableNo: data.order.tableNo,
         items: data.order.items.map((item) => item.name),
         total: data.order.total,
@@ -204,7 +233,12 @@ export default function Orders() {
       setOrders([savedOrder, ...orders]);
       setCart([]);
 
-      setForm({ customer: "", tableNo: "", paymentMethod: "Cash" });
+      setForm({
+        customer: "",
+        phone: "",
+        tableNo: "",
+        paymentMethod: "Cash",
+      });
       setShowForm(false);
 
       alert("Order placed successfully!");
@@ -369,55 +403,103 @@ export default function Orders() {
               <h3 style={styles.formTitle}>Place New Order</h3>
 
               <form onSubmit={handlePlaceOrder}>
-                <div style={styles.formRow}>
-                  <div style={styles.field}>
-                    <label style={styles.label}>Customer Name</label>
-                    <input
-                        value={form.customer}
-                        onChange={(e) =>
-                            setForm({ ...form, customer: e.target.value })
-                        }
-                        placeholder="Customer name"
-                        style={styles.input}
-                        required
-                    />
-                  </div>
-
-                  <div style={styles.field}>
-                    <label style={styles.label}>Table Number</label>
-                    <select
-                        value={form.tableNo}
-                        onChange={(e) =>
-                            setForm({ ...form, tableNo: e.target.value })
-                        }
-                        style={styles.input}
-                        required
-                    >
-                      <option value="">Select table</option>
-                      {initialTables
-                          .filter((t) => t.status === "Available")
-                          .map((t) => (
-                              <option key={t.id} value={t.tableNo}>
-                                Table {t.tableNo} ({t.seats} seats)
-                              </option>
-                          ))}
-                    </select>
-                  </div>
-
-                  <div style={styles.field}>
-                    <label style={styles.label}>Payment Method</label>
-                    <select
-                        value={form.paymentMethod}
-                        onChange={(e) =>
-                            setForm({ ...form, paymentMethod: e.target.value })
-                        }
-                        style={styles.input}
-                    >
-                      <option>Cash</option>
-                      <option>Online</option>
-                    </select>
-                  </div>
+                <div style={styles.field}>
+                  <label style={styles.label}>Customer Name</label>
+                  <input
+                      value={form.customer}
+                      onChange={(e) =>
+                          setForm({ ...form, customer: e.target.value })
+                      }
+                      placeholder="Customer name"
+                      style={styles.input}
+                      required
+                  />
                 </div>
+
+                <div style={styles.field}>
+                  <label style={styles.label}>Phone Number</label>
+
+                  <input
+                      value={form.phone}
+                      onChange={(e) => {
+                        const phone = e.target.value;
+
+                        setForm({...form, phone});
+
+                        if (phone.length === 10) {
+                          fetchCustomerHistory(phone);
+                        }
+                      }}
+                      placeholder="9876543210"
+                      style={styles.input}
+                      required
+                  />
+
+                </div>
+
+
+                {customerHistory && (
+                    <div
+                        style={{
+                          background: "#222",
+                          padding: "10px",
+                          borderRadius: "8px",
+                          marginTop: "10px",
+                        }}
+                    >
+                      <h4>Customer History</h4>
+
+                      <p>Visits: {customerHistory.visitCount}</p>
+
+                      <p>Total Spent: ₹{customerHistory.totalSpent}</p>
+
+                      <p>Favourite Items:</p>
+
+                      {customerHistory.favoriteItems?.map((item, index) => (
+                          <div key={index}>
+                            {item[0]} ({item[1]} orders)
+                          </div>
+                      ))}
+                    </div>
+                )}
+
+                <div style={styles.field}>
+                  <label style={styles.label}>Table Number</label>
+
+
+                  <select
+                      value={form.tableNo}
+                      onChange={(e) =>
+                          setForm({ ...form, tableNo: e.target.value })
+                      }
+                      style={styles.input}
+                      required
+                  >
+                    <option value="">Select table</option>
+                    {initialTables
+                        .filter((t) => t.status === "Available")
+                        .map((t) => (
+                            <option key={t.id} value={t.tableNo}>
+                              Table {t.tableNo} ({t.seats} seats)
+                            </option>
+                        ))}
+                  </select>
+                </div>
+
+                <div style={styles.field}>
+                  <label style={styles.label}>Payment Method</label>
+                  <select
+                      value={form.paymentMethod}
+                      onChange={(e) =>
+                          setForm({ ...form, paymentMethod: e.target.value })
+                      }
+                      style={styles.input}
+                  >
+                    <option>Cash</option>
+                    <option>Online</option>
+                  </select>
+                </div>
+
 
                 <h4
                     style={{
@@ -617,6 +699,9 @@ export default function Orders() {
                 <h3 style={styles.orderCustomer}>{order.customer}</h3>
 
                 <p style={styles.orderInfo}>
+                  📞 {order.phone}
+                </p>
+                <p style={styles.orderInfo}>
                   Table {order.tableNo} · {order.time}
                 </p>
 
@@ -656,7 +741,7 @@ export default function Orders() {
       </div>
   );
 }
-// added code
+
 
 const styles = {
   page: { padding: "28px 32px", maxWidth: 1200, margin: "0 auto" },

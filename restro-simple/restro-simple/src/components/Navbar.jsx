@@ -9,6 +9,7 @@ export default function Navbar({ user, setUser }) {
     { path: "/tables", label: "🪑 Tables", roles: ["Admin", "Waiter"] },
     { path: "/orders", label: "📋 Orders", roles: ["Admin", "Waiter"] },
     { path: "/menu", label: "🍛 Menu", roles: ["Admin", "Waiter"] },
+    { path: "/customer-history", label: "📞 Customer History", roles: ["Admin", "Waiter"] },
   ];
 
   const handleLogout = () => {
@@ -19,33 +20,33 @@ export default function Navbar({ user, setUser }) {
   const visibleLinks = links.filter((l) => l.roles.includes(user?.role));
 
   return (
-    <nav style={styles.nav}>
-      <div style={styles.brand} onClick={() => navigate("/dashboard")}>
-        <span style={styles.brandIcon}>🍽️</span>
-        <span style={styles.brandName}>Restro POS</span>
-      </div>
+      <nav style={styles.nav}>
+        <div style={styles.brand} onClick={() => navigate("/dashboard")}>
+          <span style={styles.brandIcon}>🍽️</span>
+          <span style={styles.brandName}>Restro POS</span>
+        </div>
 
-      <div style={styles.links}>
-        {visibleLinks.map((link) => (
-          <button
-            key={link.path}
-            onClick={() => navigate(link.path)}
-            style={{
-              ...styles.link,
-              ...(location.pathname === link.path ? styles.activeLink : {}),
-            }}
-          >
-            {link.label}
-          </button>
-        ))}
-      </div>
+        <div style={styles.links}>
+          {visibleLinks.map((link) => (
+              <button
+                  key={link.path}
+                  onClick={() => navigate(link.path)}
+                  style={{
+                    ...styles.link,
+                    ...(location.pathname === link.path ? styles.activeLink : {}),
+                  }}
+              >
+                {link.label}
+              </button>
+          ))}
+        </div>
 
-      <div style={styles.right}>
-        <span style={styles.userName}>👤 {user?.name}</span>
-        <span style={styles.role}>{user?.role}</span>
-        <button onClick={handleLogout} style={styles.logoutBtn}>Logout</button>
-      </div>
-    </nav>
+        <div style={styles.right}>
+          <span style={styles.userName}>👤 {user?.name}</span>
+          <span style={styles.role}>{user?.role}</span>
+          <button onClick={handleLogout} style={styles.logoutBtn}>Logout</button>
+        </div>
+      </nav>
   );
 }
 
