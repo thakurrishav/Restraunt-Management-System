@@ -52,7 +52,7 @@ export default function Login({ setUser }) {
         <div style={styles.card}>
           <div style={styles.logo}>🍽️</div>
 
-          <h1 style={styles.title}>Restro POS</h1>
+          <h1 style={styles.title}>Smart Restaurant Management System</h1>
           <p style={styles.subtitle}>Smart Restaurant Management System</p>
 
           <form onSubmit={handleSubmit} style={styles.form}>

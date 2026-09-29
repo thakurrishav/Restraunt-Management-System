@@ -23,7 +23,7 @@ export default function Navbar({ user, setUser }) {
       <nav style={styles.nav}>
         <div style={styles.brand} onClick={() => navigate("/dashboard")}>
           <span style={styles.brandIcon}>🍽️</span>
-          <span style={styles.brandName}>Restro POS</span>
+          <span style={styles.brandName}>Smart Restraunt Management System</span>
         </div>
 
         <div style={styles.links}>
